@@ -12,18 +12,17 @@ header = ["From", "To", "Measurment", "Value in KWH", "", "MeasurmentPoint:"]
 L1 = 0
 L2 = 0
 
+WARNING_DICTIONARY  = {}
+
 FIRST_RUN = True
 FIRST_PRINT_RUN = True
 
 FULL_LIST = []
 
-# workbookWrite = Workbook()
-# sheetWrite = workbookWrite.active
-
 
 workbook = Workbook()
 page = workbook.active
-#page.title = "Test"
+page.title = "Test"
 
 def read_file(path):
     openingList = []
@@ -35,11 +34,12 @@ def read_file(path):
         for row in openingList:
             global L1
             global L2
-            if row[5] == "L1":
-                L1 += 1
-            elif row[5] == "L2":
-                L2 += 1
-          
+            global WARNING_DICTIONARY
+            if row[5] != "L3":
+                if row[5] not in WARNING_DICTIONARY:
+                    WARNING_DICTIONARY[row[5]] = 1
+                else: 
+                    WARNING_DICTIONARY[row[5]] += 1          
             
             valueNumberKWH = float(row[3].replace(".", ""))
             valueNumberKWH /= 1000000
@@ -77,29 +77,36 @@ def read_file(path):
             fillInputList(fromTime, toTime, row[3], valueNumberKWH, openingList)
 
 def fillInputList(fromTime, toTime, measurment, valueNumberKWH, openingList):
-    global FIRST_PRINT_RUN
     global FULL_LIST
-    if FIRST_PRINT_RUN:
-        row = ["From", "To", "MeasurmentHethod", "Value in KWH", "", "MeasumentPoint:", MeasurementPoint]
-        FULL_LIST.append(row)
-        row = [fromTime, toTime, measurment, valueNumberKWH, "", "Direction:", directionValue]
-        FULL_LIST.append(row)
-        FIRST_PRINT_RUN = False
-    else:
-        row = [fromTime, toTime, measurment, valueNumberKWH]
-        FULL_LIST.append(row)
-    if len(FULL_LIST) == len(openingList):
-        write(FULL_LIST)
 
-def write(FULL_LIST):
-    for row in FULL_LIST:
+    row = [fromTime, toTime, measurment, valueNumberKWH]
+    FULL_LIST.append(row)
+
+    if len(FULL_LIST) == len(openingList):
+        sortedList = sorted(FULL_LIST, key=lambda x: x[1])
+        page['A1'] = "From"
+        page['B1'] = "To"
+        page['C1'] = "MeasurmentHethod"
+        page['D1'] = "Value in KWH"
+        page['F1'] = "MeasumentPoint:"
+        page['G1'] = MeasurementPoint
+        write(sortedList)
+
+def write(sortedList):
+    warningMessage = "Warning! There have been"
+    lenBegining = len(warningMessage)
+    for i in WARNING_DICTIONARY:
+        warningMessage += f" {WARNING_DICTIONARY[i]} instances of {i},"
+    for row in sortedList:
         page.append(row)
-    if L1 != 0 or L2 != 0:
-        page['F4'] = f"Warning! There have been {L1} instances of L1 and {L2} instance of L2"
+    if len(warningMessage) > lenBegining:
+        page['F4'] = f"{warningMessage[:-1]}"
+    page['F2'] = "Direction:"
+    page['G2'] = directionValue
     workbook.save("../test.xlsx")
 
 def main ():
-    path = ""
+    path = "../readings_quarter_hourly_02072026 071238.csv"
     read_file(path)
 
 if __name__ == '__main__':
