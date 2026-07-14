@@ -1,4 +1,1 @@
 openpyxl
-pytz
-python-dateutil
-xlsxwriter
