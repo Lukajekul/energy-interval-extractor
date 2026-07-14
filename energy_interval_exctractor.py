@@ -9,6 +9,9 @@ from openpyxl.workbook import Workbook
 header = ["From", "To", "Measurment", "Value in KWH", "", "MeasurmentPoint:"]
 
 
+L1 = 0
+L2 = 0
+
 FIRST_RUN = True
 FIRST_PRINT_RUN = True
 
@@ -30,8 +33,13 @@ def read_file(path):
             openingList.append(splitLine)
         openingList = openingList[1:]
         for row in openingList:
-
-
+            global L1
+            global L2
+            if row[5] == "L1":
+                L1 += 1
+            elif row[5] == "L2":
+                L2 += 1
+          
             
             valueNumberKWH = float(row[3].replace(".", ""))
             valueNumberKWH /= 1000000
@@ -86,6 +94,8 @@ def fillInputList(fromTime, toTime, measurment, valueNumberKWH, openingList):
 def write(FULL_LIST):
     for row in FULL_LIST:
         page.append(row)
+    if L1 != 0 or L2 != 0:
+        page['F4'] = f"Warning! There have been {L1} instances of L1 and {L2} instance of L2"
     workbook.save("../test.xlsx")
 
 def main ():
