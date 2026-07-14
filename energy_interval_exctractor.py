@@ -1,10 +1,10 @@
-from openpyxl import Workbook, load_workbook
+from openpyxl import Workbook
 from datetime import datetime, timedelta
 from dateutil import tz
 from openpyxl.workbook import Workbook
+import sys
 
 workbook = Workbook()
-
 
 def read_file(path):
     global page
@@ -13,55 +13,59 @@ def read_file(path):
     global firstRun
     global MeasurementPoint
     global directionValue
+    from_zone = tz.gettz('UTC')
+    to_zone = tz.tzlocal()
     firstRun = True
     fullList = []
     openingList = []
     warningDistionary  = {}
-    with open(path) as file:
-        for line in file:
-            splitLine = line.split(";")
-            openingList.append(splitLine)
-        page = workbook.create_sheet(title=f"MP_{openingList[1][1][-3:]}")
-        openingList = openingList[1:]
-        for row in openingList:
-            if row[5] != "L3":
-                if row[5] not in warningDistionary:
-                    warningDistionary[row[5]] = 1
-                else: 
-                    warningDistionary[row[5]] += 1          
-            
-            valueNumberKWH = float(row[3].replace(".", ""))
-            valueNumberKWH /= 1000000
+    try: 
+        with open(path) as file:
+            for line in file:
+                splitLine = line.split(";")
+                openingList.append(splitLine)
+            page = workbook.create_sheet(title=f"MP_{openingList[1][1][-3:]}")
+            openingList = openingList[1:]
+            for row in openingList:
+                if row[5] != "L3":
+                    if row[5] not in warningDistionary:
+                        warningDistionary[row[5]] = 1
+                    else: 
+                        warningDistionary[row[5]] += 1          
+                
+                valueNumberKWH = float(row[3].replace(".", ""))
+                valueNumberKWH /= 1000000
 
-            row.pop(0)
-            if firstRun:
-                MeasurementPoint = row[0]
-                firstRun = False
-            row.pop(0)
-            
+                row.pop(0)
+                if firstRun:
+                    MeasurementPoint = row[0]
+                    firstRun = False
+                row.pop(0)
+                
 
-            dateTime = datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S.%f")
-            from_zone = tz.gettz('UTC')
-            to_zone = tz.tzlocal()
-            dateTime = dateTime.replace(tzinfo=from_zone)
-            dateTime = dateTime.astimezone(to_zone)
+                dateTime = datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S.%f")
+                dateTime = dateTime.replace(tzinfo=from_zone)
+                dateTime = dateTime.astimezone(to_zone)
 
 
-            durationObject = timedelta(minutes=15)
-            
-            
-            toTime = dateTime + durationObject
+                durationObject = timedelta(minutes=15)
+                
+                
+                toTime = dateTime + durationObject
 
-            fromTime = datetime.strftime(dateTime, "%Y-%m-%d %H:%M")
-            toTime = datetime.strftime(toTime, "%Y-%m-%d %H:%M")
+                fromTime = datetime.strftime(dateTime, "%Y-%m-%d %H:%M")
+                toTime = datetime.strftime(toTime, "%Y-%m-%d %H:%M")
 
-            
-            if row[2] == 'r':
-                directionValue = "Recieved"
-            elif row[2] == "s":
-                directionValue = "Sent"
+                
+                if row[2] == 'r':
+                    directionValue = "Recieved"
+                elif row[2] == "s":
+                    directionValue = "Sent"
 
-            fillInputList(fromTime, toTime, row[3], valueNumberKWH, openingList)
+                fillInputList(fromTime, toTime, row[3], valueNumberKWH, openingList)
+    except FileNotFoundError:
+        print("One or more of the inputed paths are invalid.")
+        sys.exit("Terminating program due to file error.")
 
 def fillInputList(fromTime, toTime, measurment, valueNumberKWH, openingList):
     row = [fromTime, toTime, measurment, valueNumberKWH]
@@ -105,7 +109,7 @@ def main ():
             read_file(i)
     fileName = str(input("What would you like to name your file? -->"))
     del workbook["Sheet"]
-    workbook.save(f"../{fileName}.xlsx")
+    workbook.save(f"{fileName}.xlsx")
 
 if __name__ == '__main__':
     main()
