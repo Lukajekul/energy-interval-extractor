@@ -89,7 +89,7 @@ def write(FULL_LIST):
     workbook.save("../test.xlsx")
 
 def main ():
-    path = "../readings_quarter_hourly_02072026 071238.csv"
+    path = ""
     read_file(path)
 
 if __name__ == '__main__':
