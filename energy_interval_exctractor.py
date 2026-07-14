@@ -19,13 +19,10 @@ FIRST_PRINT_RUN = True
 
 FULL_LIST = []
 
-# workbookWrite = Workbook()
-# sheetWrite = workbookWrite.active
-
 
 workbook = Workbook()
 page = workbook.active
-#page.title = "Test"
+page.title = "Test"
 
 def read_file(path):
     openingList = []
@@ -80,24 +77,13 @@ def read_file(path):
             fillInputList(fromTime, toTime, row[3], valueNumberKWH, openingList)
 
 def fillInputList(fromTime, toTime, measurment, valueNumberKWH, openingList):
-    # global FIRST_PRINT_RUN
     global FULL_LIST
 
     row = [fromTime, toTime, measurment, valueNumberKWH]
     FULL_LIST.append(row)
 
-    #if FIRST_PRINT_RUN:
-    #     row = ["From", , "MeasurmentHethod", "Value in KWH", "", "MeasumentPoint:", MeasurementPoint]
-    #     FULL_LIST.append(row)
-    #     row = [fromTime, toTime, measurment, valueNumberKWH, "", "Direction:", directionValue]
-    #     FULL_LIST.append(row)
-    #     FIRST_PRINT_RUN = False
-    # else:
-    #     row = [fromTime, toTime, measurment, valueNumberKWH]
-    #     FULL_LIST.append(row)
     if len(FULL_LIST) == len(openingList):
         sortedList = sorted(FULL_LIST, key=lambda x: x[1])
-        #page.insert_rows(0)
         page['A1'] = "From"
         page['B1'] = "To"
         page['C1'] = "MeasurmentHethod"
@@ -120,7 +106,7 @@ def write(sortedList):
     workbook.save("../test.xlsx")
 
 def main ():
-    path = ""
+    path = "../readings_quarter_hourly_02072026 071238.csv"
     read_file(path)
 
 if __name__ == '__main__':
